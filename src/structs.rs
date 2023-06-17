@@ -1,12 +1,13 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
 use solana_program::program_error::ProgramError;
 
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoList {
     pub items: Vec<TodoItem>,
 }
 
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoItem {
     pub id: u32,
     pub title: String,
@@ -14,10 +15,11 @@ pub struct TodoItem {
     pub completed: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
 pub enum Instruction {
     AddTodo { todo_item: TodoItem },
     MarkCompleted { todo_id: u32 },
+    DeleteTodo { todo_id: u32 },
 }
 
 pub fn parse_instruction(instruction_data: &[u8]) -> Result<Instruction, ProgramError> {
