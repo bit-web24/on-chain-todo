@@ -1,0 +1,11 @@
+[package]
+name = "on-chain-todo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "1.0.164"
+serde_json = "1.0.97"
+solana-program = "1.16.1"
