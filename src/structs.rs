@@ -1,13 +1,13 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use serde::{Deserialize, Serialize};
 use solana_program::program_error::ProgramError;
 
-#[derive(Clone, Deserialize, Serialize, Debug, BorshDeserialize, BorshSerialize)]
+
+#[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoList {
     pub items: Vec<TodoItem>,
 }
 
-#[derive(Clone, Deserialize, Serialize, Debug, BorshDeserialize, BorshSerialize)]
+#[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoItem {
     pub id: u32,
     pub title: String,
@@ -15,19 +15,24 @@ pub struct TodoItem {
     pub completed: bool,
 }
 
-#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
+#[derive(BorshDeserialize, BorshSerialize)]
 pub enum Instruction {
     AddTodo { todo_item: TodoItem },
     MarkCompleted { todo_id: u32 },
     DeleteTodo { todo_id: u32 },
 }
 
-pub fn parse_instruction(instruction_data: &[u8]) -> Result<Instruction, ProgramError> {
-    let instruction_json = String::from_utf8(instruction_data.to_vec())
-        .map_err(|_| ProgramError::InvalidInstructionData)?;
-
-    let instruction: Instruction = serde_json::from_str(&instruction_json)
-        .map_err(|_| ProgramError::InvalidInstructionData)?;
-
-    Ok(instruction)
+impl Instruction {
+    pub fn unpack(instruction_data: &[u8]) -> Result<Self, ProgramError> {
+        let (&varient, rest) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
+        let payload = TodoItem::try_from_slice(rest).unwrap();
+        Ok(
+            match varient {
+                0 => Self::AddTodo { todo_item: payload },
+                1 => Self::MarkCompleted { todo_id: payload.id },
+                2 => Self::DeleteTodo { todo_id: payload.id },
+                _ => return Err(ProgramError::InvalidInstructionData),
+            }
+        )
+    }
 }

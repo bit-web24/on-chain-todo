@@ -5,7 +5,7 @@ use solana_program::{
 };
 
 mod structs;
-use structs::{parse_instruction, Instruction, TodoItem, TodoList};
+use structs::{Instruction, TodoItem, TodoList};
 
 entrypoint!(process_instruction);
 
@@ -14,7 +14,7 @@ fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    let instruction = parse_instruction(instruction_data)?;
+    let instruction = Instruction::unpack(instruction_data)?;
 
     match instruction {
         Instruction::AddTodo { todo_item } => {
