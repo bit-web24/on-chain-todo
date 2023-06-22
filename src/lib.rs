@@ -1,4 +1,4 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     borsh::try_from_slice_unchecked,
@@ -7,7 +7,6 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
-    program_pack::IsInitialized,
     pubkey::Pubkey,
     rent::Rent,
     system_instruction,
@@ -15,7 +14,7 @@ use solana_program::{
 };
 
 mod structs;
-use structs::{Instruction, TodoItem, TodoList};
+use structs::{Instruction, TodoItem};
 
 entrypoint!(process_instruction);
 
@@ -28,12 +27,11 @@ fn process_instruction(
 
     match instruction {
         Instruction::AddTodo { todo_item } => {
-            let todo_account = &accounts[0];
             add_todo_item(program_id, accounts, todo_item)?;
-        },
+        }
         Instruction::MarkCompleted { todo_item } => {
             mark_todo_item_completed(program_id, accounts, todo_item)?;
-        },
+        }
         Instruction::DeleteTodo { todo_item } => {
             delete_todo_item(program_id, accounts, todo_item)?;
         }
@@ -56,15 +54,15 @@ fn add_todo_item(
     let account_info_iter = &mut accounts.iter();
 
     // Get accounts
-    let todo_creator = next_account_info(account_info_iter)?;
+    let initializer = next_account_info(account_info_iter)?;
 
     // Check that the todo account belongs to the program
-    if todo_creator.owner != program_id {
+    if initializer.owner != program_id {
         return Err(ProgramError::IncorrectProgramId);
     }
 
     // Signer check
-    if !todo_creator.is_signer {
+    if !initializer.is_signer {
         msg!("Missing required signature");
         return Err(ProgramError::MissingRequiredSignature);
     }
@@ -77,7 +75,7 @@ fn add_todo_item(
     let rent_lamport = rent.minimum_balance(account_len);
     let (pda, bump_seed) = Pubkey::find_program_address(
         &[
-            todo_creator.key.as_ref(),
+            initializer.key.as_ref(),
             todo_item.id.to_string().as_bytes().as_ref(),
         ],
         program_id,
@@ -90,7 +88,7 @@ fn add_todo_item(
 
     // create a data account
     let create_account_instruction = system_instruction::create_account(
-        todo_creator.key,
+        initializer.key,
         pda_account.key,
         rent_lamport,
         account_len.try_into().unwrap(),
@@ -102,13 +100,13 @@ fn add_todo_item(
         &create_account_instruction,
         // account_infos
         &[
-            todo_creator.clone(),
+            initializer.clone(),
             pda_account.clone(),
             system_program.clone(),
         ],
         // signers_seeds
         &[&[
-            todo_creator.key.as_ref(),
+            initializer.key.as_ref(),
             todo_item.id.to_string().as_bytes().as_ref(),
             &[bump_seed],
         ]],
@@ -117,23 +115,19 @@ fn add_todo_item(
     msg!("PDA created: {}", pda);
 
     // deserializing account data
-    msg!("unpacking state account");
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
-    if account_data.is_initialized() {
+    if pda_account.data_is_empty() {
         msg!("Account is not initialized");
-        return Err(ProgramError::AccountAlreadyInitialized);
+        return Err(ProgramError::UninitializedAccount);
     }
-    msg!("borrowed account data");
     account_data.id = todo_item.id;
     account_data.title = todo_item.title;
     account_data.description = todo_item.description;
     account_data.completed = false;
 
     // Serialize account data
-    msg!("serializing account");
     account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
-    msg!("state account serialized");
 
     Ok(())
 }
@@ -148,20 +142,16 @@ fn mark_todo_item_completed(
         return Err(ProgramError::NotEnoughAccountKeys);
     }
 
-    let todo_account = &accounts[0];
-
-    // Check that the todo account belongs to the program
-    if todo_account.owner != program_id {
-        return Err(ProgramError::IncorrectProgramId);
-    }
-
-    msg!("Marking todo as completed");
-
     // Get Account iterator
     let account_info_iter = &mut accounts.iter();
 
     // Get accounts
     let initializer = next_account_info(account_info_iter)?;
+    // Check that the todo account belongs to the program
+    if initializer.owner != program_id {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
     if !initializer.is_signer {
         msg!("Missing required signature");
         return Err(ProgramError::MissingRequiredSignature);
@@ -185,7 +175,7 @@ fn mark_todo_item_completed(
 
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
-    if !account_data.is_initialized() {
+    if pda_account.data_is_empty() {
         msg!("Account is not initialized");
         return Err(ProgramError::InvalidAccountData);
     }
@@ -199,6 +189,60 @@ fn mark_todo_item_completed(
     Ok(())
 }
 
-fn delete_todo_item(program_id: &Pubkey, accounts: &[AccountInfo], todo_item: TodoItem) -> ProgramResult {
-   Ok(())
+fn delete_todo_item(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    todo_item: TodoItem,
+) -> ProgramResult {
+    // Ensure that the accounts slice has the required accounts in the expected order
+    if accounts.len() < 1 {
+        return Err(ProgramError::NotEnoughAccountKeys);
+    }
+
+    // Get Account iterator
+    let account_info_iter = &mut accounts.iter();
+
+    // Get accounts
+    let initializer = next_account_info(account_info_iter)?;
+    // Check that the todo account belongs to the program
+    if initializer.owner != program_id {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    if !initializer.is_signer {
+        msg!("Missing required signature");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    let pda_account = next_account_info(account_info_iter)?;
+    if pda_account.data_is_empty() {
+        msg!("Account is not initialized");
+        return Err(ProgramError::UninitializedAccount);
+    }
+
+    // Derive PDA and check that it matches client
+    let (pda, _bump_seed) = Pubkey::find_program_address(
+        &[
+            initializer.key.as_ref(),
+            todo_item.id.to_string().as_bytes().as_ref(),
+        ],
+        program_id,
+    );
+
+    if pda != *pda_account.key {
+        msg!("Invalid seeds for PDA");
+        return Err(ProgramError::InvalidSeeds);
+    }
+
+    // Close the PDA account
+    **initializer.lamports.borrow_mut() = initializer
+        .lamports()
+        .checked_add(pda_account.lamports())
+        .unwrap();
+    **pda_account.lamports.borrow_mut() = 0;
+
+    let mut source_data = pda_account.data.borrow_mut();
+    source_data.fill(0);
+
+    Ok(())
 }

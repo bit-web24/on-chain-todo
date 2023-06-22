@@ -1,6 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{program_error::ProgramError, program_pack::{Sealed, IsInitialized}};
-
+use solana_program::program_error::ProgramError;
 
 #[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoList {
@@ -14,13 +13,6 @@ pub struct TodoItem {
     pub description: String,
     pub completed: bool,
 }
-impl Sealed for TodoItem {}
-
-impl IsInitialized for TodoItem {
-    fn is_initialized(&self) -> bool {
-        self.is_initialized()
-    }
-}
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub enum Instruction {
@@ -31,15 +23,15 @@ pub enum Instruction {
 
 impl Instruction {
     pub fn unpack(instruction_data: &[u8]) -> Result<Self, ProgramError> {
-        let (&varient, rest) = instruction_data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
+        let (&varient, rest) = instruction_data
+            .split_first()
+            .ok_or(ProgramError::InvalidInstructionData)?;
         let payload = TodoItem::try_from_slice(rest).unwrap();
-        Ok(
-            match varient {
-                0 => Self::AddTodo { todo_item: payload },
-                1 => Self::MarkCompleted { todo_item: payload },
-                2 => Self::DeleteTodo { todo_item: payload },
-                _ => return Err(ProgramError::InvalidInstructionData),
-            }
-        )
+        Ok(match varient {
+            0 => Self::AddTodo { todo_item: payload },
+            1 => Self::MarkCompleted { todo_item: payload },
+            2 => Self::DeleteTodo { todo_item: payload },
+            _ => return Err(ProgramError::InvalidInstructionData),
+        })
     }
 }
