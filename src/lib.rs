@@ -238,7 +238,8 @@ fn delete_todo_item(
     **initializer.lamports.borrow_mut() = initializer
         .lamports()
         .checked_add(pda_account.lamports())
-        .unwrap();
+        .ok_or(ProgramError::InsufficientFunds)?;
+
     **pda_account.lamports.borrow_mut() = 0;
 
     let mut source_data = pda_account.data.borrow_mut();
