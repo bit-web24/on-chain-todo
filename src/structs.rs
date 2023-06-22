@@ -9,7 +9,7 @@ pub struct TodoList {
 
 #[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoItem {
-    pub id: u32,
+    pub id: u64,
     pub title: String,
     pub description: String,
     pub completed: bool,
@@ -18,8 +18,8 @@ pub struct TodoItem {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub enum Instruction {
     AddTodo { todo_item: TodoItem },
-    MarkCompleted { todo_id: u32 },
-    DeleteTodo { todo_id: u32 },
+    MarkCompleted { todo_id: u64 },
+    DeleteTodo { todo_id: u64 },
 }
 
 impl Instruction {
