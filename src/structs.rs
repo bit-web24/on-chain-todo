@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::program_error::ProgramError;
+use solana_program::{program_error::ProgramError, program_pack::{Sealed, IsInitialized}};
 
 
 #[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
@@ -14,12 +14,19 @@ pub struct TodoItem {
     pub description: String,
     pub completed: bool,
 }
+impl Sealed for TodoItem {}
+
+impl IsInitialized for TodoItem {
+    fn is_initialized(&self) -> bool {
+        self.is_initialized()
+    }
+}
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub enum Instruction {
     AddTodo { todo_item: TodoItem },
-    MarkCompleted { todo_id: u64 },
-    DeleteTodo { todo_id: u64 },
+    MarkCompleted { todo_item: TodoItem },
+    DeleteTodo { todo_item: TodoItem },
 }
 
 impl Instruction {
@@ -29,8 +36,8 @@ impl Instruction {
         Ok(
             match varient {
                 0 => Self::AddTodo { todo_item: payload },
-                1 => Self::MarkCompleted { todo_id: payload.id },
-                2 => Self::DeleteTodo { todo_id: payload.id },
+                1 => Self::MarkCompleted { todo_item: payload },
+                2 => Self::DeleteTodo { todo_item: payload },
                 _ => return Err(ProgramError::InvalidInstructionData),
             }
         )

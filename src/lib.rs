@@ -7,6 +7,7 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
+    program_pack::IsInitialized,
     pubkey::Pubkey,
     rent::Rent,
     system_instruction,
@@ -28,21 +29,13 @@ fn process_instruction(
     match instruction {
         Instruction::AddTodo { todo_item } => {
             let todo_account = &accounts[0];
-            if todo_account.data_is_empty() {
-                // Create a new todo account if it doesn't exist
-                let todo_list = TodoList {
-                    items: vec![todo_item],
-                };
-                todo_list.serialize(&mut &mut todo_account.data.borrow_mut()[..])?;
-            } else {
-                add_todo_item(program_id, accounts, todo_item)?;
-            }
-        }
-        Instruction::MarkCompleted { todo_id } => {
-            mark_todo_item_completed(program_id, accounts, todo_id)?;
-        }
-        Instruction::DeleteTodo { todo_id } => {
-            delete_todo_item(program_id, accounts, todo_id)?;
+            add_todo_item(program_id, accounts, todo_item)?;
+        },
+        Instruction::MarkCompleted { todo_item } => {
+            mark_todo_item_completed(program_id, accounts, todo_item)?;
+        },
+        Instruction::DeleteTodo { todo_item } => {
+            delete_todo_item(program_id, accounts, todo_item)?;
         }
     }
 
@@ -64,10 +57,18 @@ fn add_todo_item(
 
     // Get accounts
     let todo_creator = next_account_info(account_info_iter)?;
+
     // Check that the todo account belongs to the program
     if todo_creator.owner != program_id {
         return Err(ProgramError::IncorrectProgramId);
     }
+
+    // Signer check
+    if !todo_creator.is_signer {
+        msg!("Missing required signature");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
     let pda_account = next_account_info(account_info_iter)?;
     let system_program = next_account_info(account_info_iter)?;
 
@@ -81,6 +82,12 @@ fn add_todo_item(
         ],
         program_id,
     );
+
+    if pda != *pda_account.key {
+        msg!("Invalid seeds for PDA");
+        return Err(ProgramError::InvalidSeeds);
+    }
+
     // create a data account
     let create_account_instruction = system_instruction::create_account(
         todo_creator.key,
@@ -113,6 +120,10 @@ fn add_todo_item(
     msg!("unpacking state account");
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
+    if account_data.is_initialized() {
+        msg!("Account is not initialized");
+        return Err(ProgramError::AccountAlreadyInitialized);
+    }
     msg!("borrowed account data");
     account_data.id = todo_item.id;
     account_data.title = todo_item.title;
@@ -130,7 +141,7 @@ fn add_todo_item(
 fn mark_todo_item_completed(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    todo_id: u64,
+    todo_item: TodoItem,
 ) -> ProgramResult {
     // Ensure that the accounts slice has the required accounts in the expected order
     if accounts.len() < 1 {
@@ -144,59 +155,50 @@ fn mark_todo_item_completed(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    // Deserialize the account data into TodoList
-    let mut todo_list = TodoList::try_from_slice(&todo_account.data.borrow())?;
+    msg!("Marking todo as completed");
 
-    // Find the todo item with the specified ID
-    let item_index = todo_list.items.iter().position(|item| item.id == todo_id);
+    // Get Account iterator
+    let account_info_iter = &mut accounts.iter();
 
-    match item_index {
-        Some(index) => {
-            // Mark the todo item as completed
-            todo_list.items[index].completed = true;
-
-            // Serialize the updated todo list back into the account data
-            todo_account.data.borrow_mut()[..].copy_from_slice(&todo_list.try_to_vec()?);
-            Ok(())
-        }
-        None => {
-            // Return an error if the specified todo item is not found
-            Err(ProgramError::InvalidArgument)
-        }
+    // Get accounts
+    let initializer = next_account_info(account_info_iter)?;
+    if !initializer.is_signer {
+        msg!("Missing required signature");
+        return Err(ProgramError::MissingRequiredSignature);
     }
+
+    let pda_account = next_account_info(account_info_iter)?;
+
+    // Derive PDA and check that it matches client
+    let (pda, _bump_seed) = Pubkey::find_program_address(
+        &[
+            initializer.key.as_ref(),
+            todo_item.id.to_string().as_bytes().as_ref(),
+        ],
+        program_id,
+    );
+
+    if pda != *pda_account.key {
+        msg!("Invalid seeds for PDA");
+        return Err(ProgramError::InvalidSeeds);
+    }
+
+    let mut account_data =
+        try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
+    if !account_data.is_initialized() {
+        msg!("Account is not initialized");
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    account_data.title = todo_item.title;
+    account_data.description = todo_item.description;
+    account_data.completed = true;
+
+    account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
+
+    Ok(())
 }
 
-fn delete_todo_item(program_id: &Pubkey, accounts: &[AccountInfo], todo_id: u64) -> ProgramResult {
-    // Ensure that the accounts slice has the required accounts in the expected order
-    if accounts.len() < 1 {
-        return Err(ProgramError::NotEnoughAccountKeys);
-    }
-
-    let todo_account = &accounts[0];
-
-    // Check that the todo account belongs to the program
-    if todo_account.owner != program_id {
-        return Err(ProgramError::IncorrectProgramId);
-    }
-
-    // Deserialize the account data into TodoList
-    let mut todo_list = TodoList::try_from_slice(&todo_account.data.borrow())?;
-
-    // Find the index of the todo item with the specified ID
-    let item_index = todo_list.items.iter().position(|item| item.id == todo_id);
-
-    match item_index {
-        Some(index) => {
-            // Remove the todo item from the list
-            todo_list.items.remove(index);
-
-            // Serialize the updated todo list back into the account data
-            todo_account.data.borrow_mut()[..].copy_from_slice(&todo_list.try_to_vec()?);
-            Ok(())
-        }
-        None => {
-            // Return an error if the specified todo item is not found
-            Err(ProgramError::InvalidArgument)
-        }
-    }
+fn delete_todo_item(program_id: &Pubkey, accounts: &[AccountInfo], todo_item: TodoItem) -> ProgramResult {
+   Ok(())
 }
