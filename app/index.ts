@@ -14,7 +14,7 @@ const payerKeypair = web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypa
 // Specify the program ID of the Solana program
 const programId = new web3.PublicKey(fs.readFileSync('../program_id'));
 
-async function addTodoItem(todoItem: TodoItem) {
+export async function addTodoItem(todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -69,7 +69,7 @@ async function addTodoItem(todoItem: TodoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function markCompleted(todoItem: TodoItem) {
+export async function markCompleted(todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -125,7 +125,7 @@ async function markCompleted(todoItem: TodoItem) {
 }
 
 
-async function deleteTodoItem(todoItem: TodoItem) {
+export async function deleteTodoItem(todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
