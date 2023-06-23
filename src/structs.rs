@@ -27,6 +27,7 @@ impl Instruction {
             0 => Self::AddTodo { todo_item: payload },
             1 => Self::MarkCompleted { todo_item: payload },
             2 => Self::DeleteTodo { todo_item: payload },
+            3 => Self::UpdateTodo { todo_item: payload },
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }
