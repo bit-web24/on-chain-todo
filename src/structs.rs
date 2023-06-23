@@ -2,11 +2,6 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
 
 #[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
-pub struct TodoList {
-    pub items: Vec<TodoItem>,
-}
-
-#[derive(Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub struct TodoItem {
     pub id: u64,
     pub title: String,
