@@ -14,6 +14,7 @@ pub enum Instruction {
     AddTodo { todo_item: TodoItem },
     MarkCompleted { todo_item: TodoItem },
     DeleteTodo { todo_item: TodoItem },
+    UpdateTodo { todo_item: TodoItem },
 }
 
 impl Instruction {

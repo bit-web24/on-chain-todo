@@ -32,6 +32,10 @@ fn process_instruction(
         Instruction::MarkCompleted { todo_item } => {
             mark_todo_item_completed(program_id, accounts, todo_item)?;
         }
+        // add a update todo item instruction
+        Instruction::UpdateTodo { todo_item } => {
+            update_todo_item(program_id, accounts, todo_item)?;
+        }
         Instruction::DeleteTodo { todo_item } => {
             delete_todo_item(program_id, accounts, todo_item)?;
         }
@@ -252,6 +256,65 @@ fn delete_todo_item(
 
     let mut source_data = pda_account.data.borrow_mut();
     source_data.fill(0);
+
+    Ok(())
+}
+
+// function for updating a todo item
+fn update_todo_item(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    todo_item: TodoItem,
+) -> ProgramResult {
+    // Ensure that the accounts slice has the required accounts in the expected order
+    if accounts.len() < 1 {
+        return Err(ProgramError::NotEnoughAccountKeys);
+    }
+
+    // Get Account iterator
+    let account_info_iter = &mut accounts.iter();
+
+    // Get accounts
+    let initializer = next_account_info(account_info_iter)?;
+
+    // Check that the todo account belongs to the program
+    if initializer.owner != program_id {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    if !initializer.is_signer {
+        msg!("Missing required signature");
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    let pda_account = next_account_info(account_info_iter)?;
+
+    if pda_account.data_is_empty() {
+        msg!("Account is not initialized");
+        return Err(ProgramError::UninitializedAccount);
+    }
+
+    // Derive PDA and check that it matches client
+    let (pda, _bump_seed) = Pubkey::find_program_address(
+        &[
+            initializer.key.as_ref(),
+            todo_item.id.to_string().as_bytes().as_ref(),
+        ],
+        program_id,
+    );
+
+    if pda != *pda_account.key {
+        msg!("Invalid seeds for PDA");
+        return Err(ProgramError::InvalidSeeds);
+    }
+
+    let mut account_data =
+        try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
+
+    account_data.title = todo_item.title;
+    account_data.description = todo_item.description;
+
+    account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
 
     Ok(())
 }
