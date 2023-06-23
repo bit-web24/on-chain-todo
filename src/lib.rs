@@ -68,11 +68,18 @@ fn add_todo_item(
     }
 
     let pda_account = next_account_info(account_info_iter)?;
+    
+    if !pda_account.data_is_empty() {
+        msg!("Account is already initialized");
+        return Err(ProgramError::AccountAlreadyInitialized);
+    }
+
     let system_program = next_account_info(account_info_iter)?;
 
     let account_len: usize = (todo_item.title.len() + 4) + (todo_item.description.len() + 4) + 8;
     let rent = Rent::get()?;
     let rent_lamport = rent.minimum_balance(account_len);
+
     let (pda, bump_seed) = Pubkey::find_program_address(
         &[
             initializer.key.as_ref(),
@@ -117,10 +124,7 @@ fn add_todo_item(
     // deserializing account data
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
-    if pda_account.data_is_empty() {
-        msg!("Account is not initialized");
-        return Err(ProgramError::UninitializedAccount);
-    }
+
     account_data.id = todo_item.id;
     account_data.title = todo_item.title;
     account_data.description = todo_item.description;
@@ -147,6 +151,7 @@ fn mark_todo_item_completed(
 
     // Get accounts
     let initializer = next_account_info(account_info_iter)?;
+
     // Check that the todo account belongs to the program
     if initializer.owner != program_id {
         return Err(ProgramError::IncorrectProgramId);
@@ -158,6 +163,11 @@ fn mark_todo_item_completed(
     }
 
     let pda_account = next_account_info(account_info_iter)?;
+
+    if pda_account.data_is_empty() {
+        msg!("Account is not initialized");
+        return Err(ProgramError::InvalidAccountData);
+    }
 
     // Derive PDA and check that it matches client
     let (pda, _bump_seed) = Pubkey::find_program_address(
@@ -175,10 +185,6 @@ fn mark_todo_item_completed(
 
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
-    if pda_account.data_is_empty() {
-        msg!("Account is not initialized");
-        return Err(ProgramError::InvalidAccountData);
-    }
 
     account_data.title = todo_item.title;
     account_data.description = todo_item.description;
@@ -204,6 +210,7 @@ fn delete_todo_item(
 
     // Get accounts
     let initializer = next_account_info(account_info_iter)?;
+
     // Check that the todo account belongs to the program
     if initializer.owner != program_id {
         return Err(ProgramError::IncorrectProgramId);
@@ -215,6 +222,7 @@ fn delete_todo_item(
     }
 
     let pda_account = next_account_info(account_info_iter)?;
+
     if pda_account.data_is_empty() {
         msg!("Account is not initialized");
         return Err(ProgramError::UninitializedAccount);
