@@ -7,13 +7,17 @@ const todos = [
   { id: 3, title: "Todo 3", content: "This is my Todo content" },
   { id: 4, title: "Todo 4", content: "This is my Todo content" },
   { id: 5, title: "Todo 5", content: "This is my Todo content" },
+  { id: 6, title: "Todo 6", content: "This is my Todo content" },
+  { id: 3, title: "Todo 3", content: "This is my Todo content" },
+  { id: 4, title: "Todo 4", content: "This is my Todo content" },
+  { id: 5, title: "Todo 5", content: "This is my Todo content" },
   { id: 6, title: "Todo 6", content: "This is my Todo content" }
 ];
 
 const Container = () => {
   return (
-    <div className="container mx-auto mt-8 px-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+    <div className="container mx-auto mt-8 px-20 pb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {todos.map(todo => (
           <Todo key={todo.id} title={todo.title} content={todo.content} />
         ))}
