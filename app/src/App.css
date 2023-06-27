@@ -2,8 +2,3 @@
   font-family: 'OldEnglishFive';
   src: url('../fonts/OldEnglishFive.ttf') format('truetype');
 }
-
-@font-face {
-  font-family: 'Shikamaru';
-  src: url('../fonts/Shikamaru.otf') format('opentype');
-}
