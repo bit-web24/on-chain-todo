@@ -1,10 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdSearch, IoMdAdd } from "react-icons/io";
 
 const Header = () => {
   const [showForm, setShowForm] = useState(false);
   const [todoTitle, setTodoTitle] = useState("");
   const [todoDescription, setTodoDescription] = useState("");
+  const [searchBarWidth, setSearchBarWidth] = useState(500); // Initial width
+
+  useEffect(() => {
+    const handleResize = () => {
+      const screenWidth = window.innerWidth;
+      const maxDesktopWidth = 500; // Maximum width of the search bar on desktop
+      const maxMobileWidth = 350; // Maximum width of the search bar on mobile
+
+      // Calculate the maximum width based on screen size
+      const maxScreenWidth = screenWidth >= 768 ? maxDesktopWidth : maxMobileWidth;
+
+      // Subtracting 32 for padding and margins
+      const updatedWidth = Math.min(screenWidth - 32, maxScreenWidth);
+
+      setSearchBarWidth(updatedWidth);
+    };
+
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Call handleResize once initially to set the initial width
+    handleResize();
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleNewTodoClick = () => {
     setShowForm(true);
@@ -32,22 +60,21 @@ const Header = () => {
         </h1>
       </div>
       <div className="flex justify-center mt-4">
-      <button
-  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-full"
-  onClick={handleNewTodoClick}
->
-  <IoMdAdd className="text-5xl" />
-</button>
-
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-full"
+          onClick={handleNewTodoClick}
+        >
+          <IoMdAdd className="text-5xl" />
+        </button>
       </div>
       <div className="max-w-4xl mx-auto flex flex-col items-center justify-center">
         <div className="bg-white rounded-full flex items-center p-2 mt-4">
           <IoMdSearch className="w-10 h-10 ml-2" />
           <input
-            className="w-full py-2 px-4 rounded-full focus:outline-none max-w-xl"
+            className="w-full py-2 px-4 rounded-full focus:outline-none"
             type="text"
             placeholder="Search..."
-            style={{ width: "500px", height: "40px" }}
+            style={{ width: searchBarWidth }}
           />
         </div>
       </div>

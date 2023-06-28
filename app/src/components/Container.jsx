@@ -17,7 +17,7 @@ const todos = [
 const Container = () => {
   return (
     <div className="container mx-auto mt-8 px-4 md:px-8 lg:px-20 pb-8">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {todos.map((todo) => (
           <Todo key={todo.id} title={todo.title} content={todo.content} />
         ))}
