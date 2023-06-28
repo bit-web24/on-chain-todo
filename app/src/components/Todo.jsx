@@ -40,7 +40,7 @@ const Todo = ({ title, content }) => {
   };
 
   return (
-    <div className={`bg-gray-100 rounded-lg p-4 shadow-md flex flex-col ${completed ? "opacity-50" : ""}`}>
+    <div className={`bg-gray-100 rounded-lg p-4 shadow-md flex flex-col ${completed ? "opacity-50" : ""} border-2 border-gray-300`}>
       <div className="flex items-center justify-between mb-4">
         {editing ? (
           <input
@@ -114,9 +114,8 @@ const Todo = ({ title, content }) => {
         )}
       </div>
       <button
-        className={`bg-green-500 text-lg text-white font-semibold py-2 px-4 rounded-full focus:outline-none ${
-          completed ? "hidden" : ""
-        }`}
+        className={`bg-green-500 text-lg text-white font-semibold py-2 px-4 rounded-full focus:outline-none ${completed ? "hidden" : ""
+          }`}
         onClick={handleCheck}
         style={{ fontFamily: "revert" }}
       >
