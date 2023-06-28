@@ -118,6 +118,7 @@ const Todo = ({ title, content }) => {
           }`}
         onClick={handleCheck}
         style={{ fontFamily: "revert" }}
+        disabled={editing}
       >
         Mark Completed
       </button>
