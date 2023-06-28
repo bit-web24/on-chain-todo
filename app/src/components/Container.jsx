@@ -16,9 +16,9 @@ const todos = [
 
 const Container = () => {
   return (
-    <div className="container mx-auto mt-8 px-20 pb-8">
+    <div className="container mx-auto mt-8 px-4 md:px-8 lg:px-20 pb-8">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-        {todos.map(todo => (
+        {todos.map((todo) => (
           <Todo key={todo.id} title={todo.title} content={todo.content} />
         ))}
       </div>
@@ -27,3 +27,4 @@ const Container = () => {
 };
 
 export default Container;
+
