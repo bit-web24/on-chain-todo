@@ -1,48 +1,52 @@
-const Todo = require('../models/todoModel');
 const rpc = require('../../bloc/index');
 const { TodoItem } = require('../../bloc/models/todoItem');
 
-exports.getAllTodos = (req, res) => {
-
-}
-
-exports.createTodo = (req, res) => {
+const createTodo = (req, res) => {
     let todo = new TodoItem({
-        title: req.body.title,
-        description: req.body.description,
+        title: req.body.todo.title,
+        description: req.body.todo.description,
         completed: false,
     });
 
-}
-
-exports.getTodoById = (req, res) => {
+    rpc.addTodoItem(todo);
 
 }
 
-exports.updateTodo = (req, res) => {
+const getTodoById = (req, res) => {
+    rpc.getTodoById(req.body.id);
+}
+
+const completeTodo = (req, res) => {
+    rpc.markCompleted(req.body.id);
+}
+
+const updateTodo = (req, res) => {
 
 }
 
-exports.deleteTodo = (req, res) => {
+const deleteTodo = (req, res) => {
 
 }
 
-exports.getCompletedTodos = (req, res) => {
+const getAllTodos = (req, res) => {
 
 }
 
-exports.getUncompletedTodos = (req, res) => {
+const getCompletedTodos = (req, res) => {
 
 }
 
-exports.completeTodo = (req, res) => {
+const getUncompletedTodos = (req, res) => {
 
 }
 
-exports.uncompleteTodo = (req, res) => {
-
-}
-
-exports.deleteAllTodos = (req, res) => {
-
+module.exports = {
+    createTodo,
+    getTodoById,
+    updateTodo,
+    completeTodo,
+    deleteTodo,
+    getAllTodos,
+    getCompletedTodos,
+    getUncompletedTodos,
 }

@@ -13,7 +13,5 @@ router.delete('/todos/:id', todoController.deleteTodo);
 router.get('/todos/completed', todoController.getCompletedTodos);
 router.get('/todos/uncompleted', todoController.getUncompletedTodos);
 router.put('/todos/:id/complete', todoController.completeTodo);
-router.put('/todos/:id/uncomplete', todoController.uncompleteTodo);
-router.delete('/todos', todoController.deleteAllTodos);
 
 module.exports = router;

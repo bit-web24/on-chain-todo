@@ -8,10 +8,10 @@ const todos = [
   { id: 4, title: "Todo 4", content: "This is my Todo content" },
   { id: 5, title: "Todo 5", content: "This is my Todo content" },
   { id: 6, title: "Todo 6", content: "This is my Todo content" },
-  { id: 3, title: "Todo 3", content: "This is my Todo content" },
-  { id: 4, title: "Todo 4", content: "This is my Todo content" },
-  { id: 5, title: "Todo 5", content: "This is my Todo content" },
-  { id: 6, title: "Todo 6", content: "This is my Todo content" }
+  { id: 7, title: "Todo 7", content: "This is my Todo content" },
+  { id: 8, title: "Todo 8", content: "This is my Todo content" },
+  { id: 9, title: "Todo 9", content: "This is my Todo content" },
+  { id: 10, title: "Todo 10", content: "This is my Todo content" }
 ];
 
 const Container = () => {
