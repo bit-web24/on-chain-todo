@@ -27,6 +27,10 @@ const Todo = ({ title, content }) => {
     setEditing(false);
   };
 
+  const handleDelete = () => {
+    // Perform delete logic here
+  };
+
   const handleTitleChange = (e) => {
     setUpdatedTitle(e.target.value);
   };
@@ -74,10 +78,16 @@ const Todo = ({ title, content }) => {
                 className="bg-blue-500 rounded-full p-2 cursor-pointer mr-2"
                 onClick={handleEdit}
                 title="Edit"
+                disabled={completed}
               >
                 <RiEdit2Line className="text-white cursor-pointer" size={20} />
               </button>
-              <button className="bg-red-500 rounded-full p-2 cursor-pointer" title="Delete">
+              <button
+                className="bg-red-500 rounded-full p-2 cursor-pointer"
+                onClick={handleDelete}
+                title="Delete"
+                disabled={!completed}
+              >
                 <RiDeleteBin2Line className="text-white cursor-pointer" size={20} />
               </button>
             </>
@@ -104,8 +114,9 @@ const Todo = ({ title, content }) => {
         )}
       </div>
       <button
-        className={`bg-green-500 text-lg text-white font-semibold py-2 px-4 rounded-full focus:outline-none ${completed ? "hidden" : ""
-          }`}
+        className={`bg-green-500 text-lg text-white font-semibold py-2 px-4 rounded-full focus:outline-none ${
+          completed ? "hidden" : ""
+        }`}
         onClick={handleCheck}
         style={{ fontFamily: "revert" }}
       >
@@ -118,8 +129,6 @@ const Todo = ({ title, content }) => {
       )}
     </div>
   );
-
-
 };
 
 export default Todo;
