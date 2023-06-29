@@ -6,6 +6,7 @@ const Header = () => {
   const [todoTitle, setTodoTitle] = useState("");
   const [todoDescription, setTodoDescription] = useState("");
   const [searchBarWidth, setSearchBarWidth] = useState(500); // Initial width
+  const [solTokenAmount, setSolTokenAmount] = useState(0); // Total SOL token amount
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,22 +55,25 @@ const Header = () => {
 
   return (
     <div className="bg-gray-800 py-8">
-      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center" style={{ height: "90px" }}>
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-between" style={{ height: "90px" }}>
         <h1 className="text-white text-5xl font-bold">
           <span style={{ fontFamily: "OldEnglishFive" }}>On Chain Todo</span>
         </h1>
+        <div className="bg-white rounded-full px-4 py-2 mt-8 mx-4">
+          <p className="text-gray-800 text-sm">Wallet Public Key: <span className="font-bold">ABCD1234EFGH56784EFGH56</span></p>
+        </div>
       </div>
-      <div className="flex justify-center mt-4">
-        <button
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-full"
-          onClick={handleNewTodoClick}
-        >
-          <IoMdAdd className="text-5xl" />
-        </button>
-      </div>
-      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center">
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center mt-10">
+        <div className="flex justify-center mt-4">
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-full"
+            onClick={handleNewTodoClick}
+          >
+            <IoMdAdd className="text-5xl" />
+          </button>
+        </div>
         <div className="bg-white rounded-full flex items-center p-2 mt-4">
-          <IoMdSearch className="w-10 h-10 ml-2" />
+          <IoMdSearch className="w-10 h-10 sm:w-12 sm:h-12 ml-2" />
           <input
             className="w-full py-2 px-4 rounded-full focus:outline-none"
             type="text"
