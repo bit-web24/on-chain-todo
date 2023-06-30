@@ -5,6 +5,7 @@ const router = express.Router();
 const todoController = require('./controllers/todoController');
 
 // Define the routes
+router.get('/balance', todoController.getBalance);
 router.get('/todos', todoController.getAllTodos);
 router.post('/todos', todoController.createTodo);
 router.get('/todos/:id', todoController.getTodoById);
