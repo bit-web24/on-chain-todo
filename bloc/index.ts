@@ -3,7 +3,7 @@ import fs from 'fs';
 import * as borsh from 'borsh';
 import { TodoItem, TodoItemSchema } from "./models/todo_item";
 
-async function connectToSolanaCluster(endpoint) {
+async function connectToSolanaCluster(endpoint: string) {
   try {
     const connection = new web3.Connection(endpoint, 'confirmed');
     const version = await connection.getVersion();
@@ -14,17 +14,17 @@ async function connectToSolanaCluster(endpoint) {
   }
 }
 
-async function readKeypair(keypairFilePath) {
+async function readKeypair(keypairFilePath: string) {
   const keypairData = fs.readFileSync(keypairFilePath);
   return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData.toString('utf8'))));
 }
 
-async function readProgramId(programIdPath) {
+async function readProgramId(programIdPath: string) {
   const programIdData = fs.readFileSync(programIdPath);
   return new web3.PublicKey(programIdData);
 }
 
-async function getBalance(connection, publicKey) {
+async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey) {
   const balance = await connection.getBalance(publicKey);
   return balance;
 }
