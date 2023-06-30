@@ -6,7 +6,7 @@ import Header from './components/Header';
 import Wallet from './components/Wallet';
 import { checkConnection } from './API/api';
 
-const isConnected = checkConnection();
+const isConnected = checkConnection() | false;
 
 function App() {
   return (
