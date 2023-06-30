@@ -3,7 +3,7 @@ import fs from 'fs';
 import * as borsh from 'borsh';
 import { TodoItem, TodoItemSchema } from "./models/todo_item";
 
-async function connectToSolanaCluster(endpoint: string) {
+export async function connectToSolanaCluster(endpoint: string) {
   try {
     const connection = new web3.Connection(endpoint, 'confirmed');
     const version = await connection.getVersion();
@@ -14,22 +14,22 @@ async function connectToSolanaCluster(endpoint: string) {
   }
 }
 
-async function readKeypair(keypairFilePath: string) {
+export async function readKeypair(keypairFilePath: string) {
   const keypairData = fs.readFileSync(keypairFilePath);
   return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData.toString('utf8'))));
 }
 
-async function readProgramId(programIdPath: string) {
+export async function readProgramId(programIdPath: string) {
   const programIdData = fs.readFileSync(programIdPath);
   return new web3.PublicKey(programIdData);
 }
 
-async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey) {
+export async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey) {
   const balance = await connection.getBalance(publicKey);
   return balance;
 }
 
-async function addTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+export async function addTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -74,7 +74,7 @@ async function addTodoItem(connection: web3.Connection, payerKeypair: web3.Keypa
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function markCompleted(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+export async function markCompleted(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -119,7 +119,7 @@ async function markCompleted(connection: web3.Connection, payerKeypair: web3.Key
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function deleteTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+export async function deleteTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -164,7 +164,7 @@ async function deleteTodoItem(connection: web3.Connection, payerKeypair: web3.Ke
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function updateTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+export async function updateTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data

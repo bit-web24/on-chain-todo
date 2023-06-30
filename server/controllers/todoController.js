@@ -4,17 +4,30 @@ const { connectToSolanaCluster, readKeypair, readProgramId } = require('../../bl
 
 const connection = await connectToSolanaCluster('http://localhost:8899');
 
-const keypairFilePath = "/home/bittu/.config/solana/id.json";
-const payerKeypair = await readKeypair(keypairFilePath);
+let payerKeypair;
 const programIdPath = '../program_id';
 const programId = await readProgramId(programIdPath);
 
 let id = 1;
 
+const checkConnection = async (req, res) => {
+  try {
+    const keypairFilePath = "/home/bittu/.config/solana/id.json";
+    payerKeypair = await readKeypair(keypairFilePath);
+
+    const isConnected = true;
+
+    res.json({ isConnected });
+  } catch (error) {
+    console.error('Error checking server connection:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 const getBalance = async (req, res) => {
   try {
     const balance = await rpc.getBalance(connection, payerKeypair);
-    res.status(200).send(`Account Balance: ${balance}`);
+    res.json({ balance });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error occurred while fetching balance');
@@ -39,21 +52,16 @@ const createTodo = async (req, res) => {
   }
 };
 
-const getTodoById = async (req, res) => {
-  try {
-    const todoId = req.body.id;
-    const todo = await rpc.getTodoById(todoId);
-    res.status(200).send(todo);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error occurred while fetching todo');
-  }
-};
-
 const completeTodo = async (req, res) => {
   try {
-    const todoId = req.body.id;
-    await rpc.markCompleted(todoId);
+    let todo = new TodoItem({
+      id: req.body.todo.id,
+      title: req.body.todo.title,
+      description: req.body.todo.description,
+      completed: false,
+    });
+
+    await rpc.markCompleted(connection, payerKeypair, programId, todo);
     res.status(200).send('Todo marked as completed');
   } catch (error) {
     console.error(error);
@@ -94,19 +102,16 @@ const deleteTodo = async (req, res) => {
   }
 };
 
+const getTodoById = async (req, res) => {
+  // Implement the logic to fetch a todo item
+};
+
 const getAllTodos = async (req, res) => {
   // Implement the logic to fetch all todos
 };
 
-const getCompletedTodos = async (req, res) => {
-  // Implement the logic to fetch completed todos
-};
-
-const getUncompletedTodos = async (req, res) => {
-  // Implement the logic to fetch uncompleted todos
-};
-
 module.exports = {
+  checkConnection,
   getBalance,
   createTodo,
   getTodoById,
