@@ -5,7 +5,7 @@ import {
   RiCheckLine,
   RiCloseLine,
 } from "react-icons/ri";
-import { deleteTodo, updateTodo } from '../API/api';
+import { deleteTodo, updateTodo, markCompleted } from '../API/api';
 
 const Todo = ({ todo, onDelete }) => {
   const [isCompleted, setIsCompleted] = useState(todo.completed);
@@ -13,8 +13,13 @@ const Todo = ({ todo, onDelete }) => {
   const [updatedTitle, setUpdatedTitle] = useState(todo.title);
   const [updatedContent, setUpdatedContent] = useState(todo.content);
 
-  const handleCheck = () => {
-    setIsCompleted(!isCompleted);
+  const handleCheck = async () => {
+    try {
+      await markCompleted(todo.id);
+      setIsCompleted(!isCompleted);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleEdit = () => {
