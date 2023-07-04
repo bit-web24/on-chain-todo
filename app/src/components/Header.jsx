@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { IoMdSearch, IoMdAdd } from "react-icons/io";
+import { createTodo } from "../API/api";
 
-const Header = () => {
+const Header = ({ walletPublicKey }) => {
   const [showForm, setShowForm] = useState(false);
   const [todoTitle, setTodoTitle] = useState("");
   const [todoDescription, setTodoDescription] = useState("");
   const [searchBarWidth, setSearchBarWidth] = useState(500); // Initial width
-  const [solTokenAmount, setSolTokenAmount] = useState(0); // Total SOL token amount
 
   useEffect(() => {
     const handleResize = () => {
@@ -63,7 +63,7 @@ const Header = () => {
           <span style={{ fontFamily: "OldEnglishFive" }}>On Chain Todo</span>
         </h1>
         <div className="bg-white rounded-full px-4 py-2 mt-8 mx-4">
-          <p className="text-gray-800 text-sm">Wallet Public Key: <span className="font-bold">ABCD1234EFGH56784EFGH56</span></p>
+          <p className="text-gray-800 text-sm">Wallet Public Key: <span className="font-bold">{walletPublicKey}</span></p>
         </div>
       </div>
       <div className="max-w-4xl mx-auto flex flex-col items-center justify-center mt-10">

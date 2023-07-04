@@ -6,12 +6,19 @@ const baseURL = 'http://localhost:3000';
 export const checkConnection = async () => {
   try {
     const response = await axios.get(`${baseURL}/check-connection`);
-    return response.data.isConnected;
+    return {
+      isConnected: response.data.isConnected,
+      walletPublicKey: response.data.walletAddr
+    };
   } catch (error) {
     console.error(error);
-    return false;
+    return {
+      isConnected: false,
+      walletPublicKey: null
+    };
   }
 };
+
 
 // Function to get account balance
 export const getBalance = async () => {

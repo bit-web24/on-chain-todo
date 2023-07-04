@@ -17,7 +17,7 @@ const checkConnection = async (req, res) => {
 
     const isConnected = true;
 
-    res.json({ isConnected });
+    res.json({ isConnected, walletAddr: payerKeypair.publicKey.toBase58() });
   } catch (error) {
     console.error('Error checking server connection:', error);
     res.status(500).json({ error: 'Internal Server Error' });
