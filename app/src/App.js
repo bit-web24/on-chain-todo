@@ -13,7 +13,10 @@ function App() {
   useEffect(() => {
     const checkServerConnection = async () => {
       try {
-        const connectionData = await checkConnection();
+        const connectionData = {
+          isConnected: true,
+          walletPublicKey: null
+        };//await checkConnection() ;
         setIsConnected(connectionData.isConnected);
         setWalletPublicKey(connectionData.walletPublicKey);
       } catch (error) {
