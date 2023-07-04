@@ -3,7 +3,7 @@ import axios from 'axios';
 const baseURL = 'http://localhost:3000';
 
 // Function to check connection with the backend server
-const checkConnection = async () => {
+export const checkConnection = async () => {
   try {
     const response = await axios.get(`${baseURL}/check-connection`);
     return response.data.isConnected;
@@ -14,7 +14,7 @@ const checkConnection = async () => {
 };
 
 // Function to get account balance
-const getBalance = async () => {
+export const getBalance = async () => {
   try {
     const response = await axios.get(`${baseURL}/balance`);
     return response.data.balance;
@@ -25,7 +25,7 @@ const getBalance = async () => {
 };
 
 // Function to create a new todo
-const createTodo = async (todo) => {
+export const createTodo = async (todo) => {
   try {
     const response = await axios.post(`${baseURL}/todos`, todo);
     return response.data;
@@ -36,7 +36,7 @@ const createTodo = async (todo) => {
 };
 
 // Function to mark a todo as completed
-const markCompleted = async (todoId) => {
+export const markCompleted = async (todoId) => {
   try {
     const response = await axios.put(`${baseURL}/todos/${todoId}/complete`);
     return response.data;
@@ -47,7 +47,7 @@ const markCompleted = async (todoId) => {
 };
 
 // Function to update a todo
-const updateTodo = async (todoId, updatedTodo) => {
+export const updateTodo = async (todoId, updatedTodo) => {
   try {
     const response = await axios.put(`${baseURL}/todos/${todoId}`, updatedTodo);
     return response.data;
@@ -58,7 +58,7 @@ const updateTodo = async (todoId, updatedTodo) => {
 };
 
 // Function to delete a todo
-const deleteTodo = async (todoId) => {
+export const deleteTodo = async (todoId) => {
   try {
     const response = await axios.delete(`${baseURL}/todos/${todoId}`);
     return response.data; // Assuming the response contains a success message
@@ -69,7 +69,7 @@ const deleteTodo = async (todoId) => {
 };
 
 // Function to get a todo item by ID
-const getTodoById = async (todoId) => {
+export const getTodoById = async (todoId) => {
   try {
     const response = await axios.get(`${baseURL}/todos/${todoId}`);
     return response.data.todo;
@@ -80,7 +80,7 @@ const getTodoById = async (todoId) => {
 };
 
 // Function to get all todos
-const getTodos = async () => {
+export const getTodos = async () => {
   try {
     const response = await axios.get(`${baseURL}/todos`);
     return response.data.todos;
@@ -88,15 +88,4 @@ const getTodos = async () => {
     console.error(error);
     return [];
   }
-};
-
-module.exports = {
-  checkConnection,
-  getBalance,
-  createTodo,
-  markCompleted,
-  updateTodo,
-  deleteTodo,
-  getTodoById,
-  getTodos,
 };

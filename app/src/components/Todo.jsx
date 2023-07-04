@@ -5,12 +5,13 @@ import {
   RiCheckLine,
   RiCloseLine,
 } from "react-icons/ri";
+import { deleteTodo, updateTodo } from '../API/api';
 
-const Todo = ({ title, content, completed }) => {
-  const [isCompleted, setIsCompleted] = useState(completed);
+const Todo = ({ todo, onDelete }) => {
+  const [isCompleted, setIsCompleted] = useState(todo.completed);
   const [isEditing, setIsEditing] = useState(false);
-  const [updatedTitle, setUpdatedTitle] = useState(title);
-  const [updatedContent, setUpdatedContent] = useState(content);
+  const [updatedTitle, setUpdatedTitle] = useState(todo.title);
+  const [updatedContent, setUpdatedContent] = useState(todo.content);
 
   const handleCheck = () => {
     setIsCompleted(!isCompleted);
@@ -20,21 +21,40 @@ const Todo = ({ title, content, completed }) => {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    // Perform save/update logic here
-    setIsEditing(false);
+  const handleSave = async () => {
+    const updatedTodo = {
+      id: todo.id,
+      title: updatedTitle,
+      description: updatedContent,
+      completed: isCompleted,
+    };
+
+    try {
+      await updateTodo(todo.id, updatedTodo);
+      setIsEditing(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
+
 
   const handleCancel = () => {
     // Reset the updated title and content
-    setUpdatedTitle(title);
-    setUpdatedContent(content);
+    setUpdatedTitle(todo.title);
+    setUpdatedContent(todo.content);
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    // Perform delete logic here
+  const handleDelete = async (onDelete) => {
+    try {
+      await deleteTodo(todo.id);
+      onDelete(todo.id); // Inform the parent component about the deletion
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+
 
   const handleTitleChange = (e) => {
     setUpdatedTitle(e.target.value);
@@ -96,10 +116,11 @@ const Todo = ({ title, content, completed }) => {
               </button>
               <button
                 className="bg-red-500 rounded-full p-2 cursor-pointer"
-                onClick={handleDelete}
+                onClick={() => handleDelete(onDelete)}
                 title="Delete"
                 disabled={!isCompleted}
               >
+
                 <RiDeleteBin2Line
                   className="text-white cursor-pointer"
                   size={20}

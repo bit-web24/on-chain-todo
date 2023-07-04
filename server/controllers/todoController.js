@@ -72,7 +72,7 @@ const completeTodo = async (req, res) => {
 const updateTodo = async (req, res) => {
   try {
     let todo = new TodoItem({
-      id: req.body.todo.id,
+      id: req.params.id,
       title: req.body.todo.title,
       description: req.body.todo.description,
       completed: false,
