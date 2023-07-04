@@ -24,9 +24,14 @@ export async function readProgramId(programIdPath: string) {
   return new web3.PublicKey(programIdData);
 }
 
-export async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey) {
-  const balance = await connection.getBalance(publicKey);
-  return balance;
+export async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey): Promise<number> {
+  try {
+    const balance = await connection.getBalance(publicKey);
+    return balance / web3.LAMPORTS_PER_SOL;
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
 }
 
 export async function addTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
@@ -207,4 +212,13 @@ export async function updateTodoItem(connection: web3.Connection, payerKeypair: 
   }));
 
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
+}
+
+export async function getTodoItems(connection:web3.Connection, programId: web3.PublicKey) {
+    connection.getProgramAccounts(programId).then(async (accounts) => {
+			const todos: TodoItem[] = accounts.map(({ account }) => {
+				return borsh.deserialize(TodoItemSchema, TodoItem, account.data)
+			})
+      return todos;
+    })
 }

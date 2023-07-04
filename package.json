@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@project-serum/borsh": "^0.2.5",
     "@solana/web3.js": "^1.77.3",
     "axios": "^1.4.0",
     "borsh": "^0.7.0",

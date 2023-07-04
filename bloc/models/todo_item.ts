@@ -1,16 +1,24 @@
-// Define the schema for TodoItem serialization
-export class TodoItem {
+import { Connection, PublicKey } from '@solana/web3.js';
+import fs from 'fs';
+import borsh from 'borsh';
+import { bool } from '@project-serum/borsh';
+
+// Flexible class that takes properties and imbues them
+// to the object instance
+class Assignable {
+    constructor(properties) {
+        Object.keys(properties).map((key) => {
+            return (this[key] = properties[key]);
+        });
+    }
+}
+
+// Our instruction payload vocabulary
+export class TodoItem extends Assignable {
     id: number;
     title: string;
     description: string;
     completed: boolean;
-
-    constructor(id: number, title: string, description: string, completed: boolean) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.completed = completed;
-    }
 }
 
 export const TodoItemSchema = new Map([
