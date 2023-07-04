@@ -35,19 +35,22 @@ const Header = () => {
     };
   }, []);
 
-  const handleNewTodoClick = () => {
-    setShowForm(true);
+  const handleAddTodo = () => {
+    try {
+      createTodo(todoTitle, todoDescription);
+      setTodoTitle("");
+      setTodoDescription("");
+      setShowForm(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
-    // Handle form submission logic here
-    // You can access the form values using the todoTitle and todoDescription state variables
-    // Reset the form and hide it when done
-    setTodoTitle("");
-    setTodoDescription("");
-    setShowForm(false);
+    handleAddTodo();
   };
+
 
   const closeModal = () => {
     setShowForm(false);
@@ -67,7 +70,6 @@ const Header = () => {
         <div className="flex justify-center mt-4">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-full"
-            onClick={handleNewTodoClick}
           >
             <IoMdAdd className="text-5xl" />
           </button>
@@ -105,6 +107,7 @@ const Header = () => {
                 <button
                   type="submit"
                   className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full mr-2"
+                  onClick={handleAddTodo}
                 >
                   Add Todo
                 </button>
