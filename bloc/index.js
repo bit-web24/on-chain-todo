@@ -1,9 +1,9 @@
-import web3 from '@solana/web3.js';
-import fs from 'fs';
-import * as borsh from 'borsh';
-import { TodoItem, TodoItemSchema } from "./models/todo_item";
+const web3 = require('@solana/web3.js');
+const fs = require('fs');
+const borsh = require('borsh');
+const { TodoItem, TodoItemSchema } = require('./models/todo_item');
 
-export async function connectToSolanaCluster(endpoint: string) {
+async function connectToSolanaCluster(endpoint) {
   try {
     const connection = new web3.Connection(endpoint, 'confirmed');
     const version = await connection.getVersion();
@@ -14,17 +14,17 @@ export async function connectToSolanaCluster(endpoint: string) {
   }
 }
 
-export async function readKeypair(keypairFilePath: string) {
+async function readKeypair(keypairFilePath) {
   const keypairData = fs.readFileSync(keypairFilePath);
   return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData.toString('utf8'))));
 }
 
-export async function readProgramId(programIdPath: string) {
+async function readProgramId(programIdPath) {
   const programIdData = fs.readFileSync(programIdPath);
   return new web3.PublicKey(programIdData);
 }
 
-export async function getBalance(connection: web3.Connection, publicKey: web3.PublicKey): Promise<number> {
+async function getBalance(connection, publicKey) {
   try {
     const balance = await connection.getBalance(publicKey);
     return balance / web3.LAMPORTS_PER_SOL;
@@ -34,7 +34,7 @@ export async function getBalance(connection: web3.Connection, publicKey: web3.Pu
   }
 }
 
-export async function addTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+async function addTodoItem(connection, payerKeypair, programId, todoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -79,7 +79,7 @@ export async function addTodoItem(connection: web3.Connection, payerKeypair: web
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-export async function markCompleted(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+async function markCompleted(connection, payerKeypair, programId, todoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -124,7 +124,7 @@ export async function markCompleted(connection: web3.Connection, payerKeypair: w
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-export async function deleteTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+async function deleteTodoItem(connection, payerKeypair, programId, todoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -169,7 +169,7 @@ export async function deleteTodoItem(connection: web3.Connection, payerKeypair: 
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-export async function updateTodoItem(connection: web3.Connection, payerKeypair: web3.Keypair, programId: web3.PublicKey, todoItem: TodoItem) {
+async function updateTodoItem(connection, payerKeypair, programId, todoItem) {
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -214,11 +214,27 @@ export async function updateTodoItem(connection: web3.Connection, payerKeypair: 
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-export async function getTodoItems(connection:web3.Connection, programId: web3.PublicKey) {
-    connection.getProgramAccounts(programId).then(async (accounts) => {
-			const todos: TodoItem[] = accounts.map(({ account }) => {
-				return borsh.deserialize(TodoItemSchema, TodoItem, account.data)
-			})
-      return todos;
-    })
+async function getTodoItems(connection, programId) {
+  try {
+    const accounts = await connection.getProgramAccounts(programId);
+    const todos = accounts.map(({ account }) => {
+      return borsh.deserialize(TodoItemSchema, TodoItem, account.data);
+    });
+    return todos;
+  } catch (error) {
+    console.error('Error fetching todo items:', error);
+    return [];
+  }
 }
+
+module.exports = {
+  connectToSolanaCluster,
+  readKeypair,
+  readProgramId,
+  getBalance,
+  addTodoItem,
+  markCompleted,
+  deleteTodoItem,
+  updateTodoItem,
+  getTodoItems
+};
