@@ -1,5 +1,5 @@
 const rpc = require('../../bloc/index');
-const { TodoItem } = require('../../bloc/models/todoItem');
+const { TodoItem } = require('../../bloc/models/todo_item');
 const { connectToSolanaCluster, readKeypair, readProgramId } = require('../../bloc/index');
 
 const connection = connectToSolanaCluster('http://localhost:8899');
@@ -119,6 +119,6 @@ module.exports = {
   completeTodo,
   deleteTodo,
   getAllTodos,
-  getCompletedTodos,
-  getUncompletedTodos,
+  getTodoById,
+  getAllTodos,
 };
