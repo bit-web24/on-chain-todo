@@ -19,9 +19,8 @@ async function readKeypair(keypairFilePath) {
   return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData.toString('utf8'))));
 }
 
-async function readProgramId(programIdPath) {
-  const programIdData = fs.readFileSync(programIdPath);
-  return new web3.PublicKey(programIdData);
+async function getProgramId() {
+  return new web3.PublicKey("HG7TGfAafFsPTA28aTnmDPcgtEd26Xotr9iFZmDLGoMz");
 }
 
 async function getBalance(connection, publicKey) {
@@ -230,7 +229,7 @@ async function getTodoItems(connection, programId) {
 module.exports = {
   connectToSolanaCluster,
   readKeypair,
-  readProgramId,
+  getProgramId,
   getBalance,
   addTodoItem,
   markCompleted,

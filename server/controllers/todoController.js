@@ -1,12 +1,11 @@
 const rpc = require('../../bloc/index');
 const { TodoItem } = require('../../bloc/models/todo_item');
-const { connectToSolanaCluster, readKeypair, readProgramId } = require('../../bloc/index');
+const { connectToSolanaCluster, readKeypair, getProgramId } = require('../../bloc/index');
 
 const connection = connectToSolanaCluster('http://localhost:8899');
 
 let payerKeypair;
-const programIdPath = '../program_id';
-const programId = readProgramId(programIdPath);
+const programId = getProgramId();
 
 let id = 1;
 
