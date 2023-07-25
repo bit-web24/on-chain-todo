@@ -1,7 +1,7 @@
 const web3 = require('@solana/web3.js');
 const fs = require('fs');
 const borsh = require('borsh');
-const { TodoItem, TodoItemSchema } = require('./models/todo_item');
+const { TodoItemLayout } = require('./models/todo_item');
 
 function readKeypair(keypairFilePath) {
   const keypairData = fs.readFileSync(keypairFilePath);
@@ -24,49 +24,35 @@ async function getBalance(pubkey) {
 }
 
 async function addTodoItem(payerKeypair, programId, todoItem) {
-  const connection = new web3.Connection('http://localhost:8899', 'confirmed');
-  const transaction = new web3.Transaction();
+  try {
+    const connection = new web3.Connection('http://localhost:8899', 'confirmed');
+    const transaction = new web3.Transaction();
 
-  // Pack the instruction data
-  const instructionIndexBuffer = Buffer.alloc(4);
-  instructionIndexBuffer.writeInt32LE(0, 0); // Instruction index 0 for AddTodo
+    // Serialize the todoItem object using updated TodoItemLayout
+    const instructionData = Buffer.from(TodoItemLayout.encode(todoItem));
 
-  // Serialize the todoItem object
-  const todoItemBuffer = borsh.serialize(TodoItemSchema, todoItem);
+    // Calculate the PDA
+    const [pda] = web3.PublicKey.findProgramAddressSync(
+      [Buffer.from(todoItem.id.toString()), payerKeypair.publicKey.toBuffer()],
+      programId
+    );
 
-  // Prepare the instruction data
-  const instructionData = Buffer.concat([instructionIndexBuffer, todoItemBuffer]);
+    // Add the instruction to the transaction
+    transaction.add(new web3.TransactionInstruction({
+      keys: [
+        { isSigner: true, isWritable: true, pubkey: payerKeypair.publicKey },
+        { isSigner: false, isWritable: true, pubkey: pda },
+        { isSigner: false, isWritable: false, pubkey: web3.SystemProgram.programId },
+      ],
+      programId: programId,
+      data: instructionData,
+    }));
 
-  // Calculate the PDA
-  const [pda] = web3.PublicKey.findProgramAddressSync(
-    [Buffer.from(todoItem.id.toString()), payerKeypair.publicKey.toBuffer()],
-    programId
-  );
-
-  // Add the instruction to the transaction
-  transaction.add(new web3.TransactionInstruction({
-    keys: [
-      {
-        isSigner: true,
-        isWritable: true,
-        pubkey: payerKeypair.publicKey,
-      },
-      {
-        isSigner: false,
-        isWritable: true,
-        pubkey: pda,
-      },
-      {
-        isSigner: false,
-        isWritable: false,
-        pubkey: web3.SystemProgram.programId,
-      },
-    ],
-    programId: programId,
-    data: instructionData,
-  }));
-
-  await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
+    const signature = await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
+    console.log('Transaction confirmed:', signature);
+  } catch (error) {
+    console.error('Error adding Todo item:', error);
+  }
 }
 
 async function markCompleted(payerKeypair, programId, todoItem) {
@@ -207,19 +193,19 @@ async function updateTodoItem(payerKeypair, programId, todoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function getTodoItems(programId) {
-  try {
-    const connection = new web3.Connection('http://localhost:8899', 'confirmed');
-    const accounts = await connection.getProgramAccounts(programId);
-    const todos = accounts.map(({ account }) => {
-      return borsh.deserialize(TodoItemSchema, TodoItem, account.data);
-    });
-    return todos;
-  } catch (error) {
-    console.error('Error fetching todo items:', error);
-    return [];
-  }
-}
+// async function getTodoItems(programId) {
+//   try {
+//     const connection = new web3.Connection('http://localhost:8899', 'confirmed');
+//     const accounts = await connection.getProgramAccounts(programId);
+//     const todos = accounts.map(({ account }) => {
+//       return borsh.deserialize(TodoItemSchema, TodoItem, account.data);
+//     });
+//     return todos;
+//   } catch (error) {
+//     console.error('Error fetching todo items:', error);
+//     return [];
+//   }
+// }
 
 module.exports = {
   readKeypair,

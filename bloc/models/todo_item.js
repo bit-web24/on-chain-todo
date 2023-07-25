@@ -1,3 +1,5 @@
+const { struct, u32, bool, str } = require('@solana/buffer-layout');
+
 class Assignable {
     constructor(properties) {
         Object.keys(properties).map((key) => {
@@ -17,11 +19,15 @@ class TodoItem extends Assignable {
     }
 }
 
-const TodoItemSchema = new Map([
-    [TodoItem, { kind: 'struct', fields: [['id', 'u64'], ['title', 'string'], ['description', 'string'], ['completed', 'bool']] }],
+// Define the updated TodoItem schema using @solana/buffer-layout
+const TodoItemLayout = struct([
+  u32('id'),
+  str('title'),
+  str('description'),
+  bool('completed'),
 ]);
 
 module.exports = {
     TodoItem,
-    TodoItemSchema,
+    TodoItemLayout,
 };
