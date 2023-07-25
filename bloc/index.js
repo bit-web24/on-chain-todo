@@ -3,37 +3,28 @@ const fs = require('fs');
 const borsh = require('borsh');
 const { TodoItem, TodoItemSchema } = require('./models/todo_item');
 
-async function connectToSolanaCluster(endpoint) {
-  try {
-    const connection = new web3.Connection(endpoint, 'confirmed');
-    const version = await connection.getVersion();
-    console.log('Connected to Solana cluster version:', version['solana-core']);
-    return connection;
-  } catch (error) {
-    console.error('Error connecting to the Solana cluster:', error);
-  }
-}
-
-async function readKeypair(keypairFilePath) {
+function readKeypair(keypairFilePath) {
   const keypairData = fs.readFileSync(keypairFilePath);
-  return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData.toString('utf8'))));
+  return web3.Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypairData)));
 }
 
 async function getProgramId() {
   return new web3.PublicKey("HG7TGfAafFsPTA28aTnmDPcgtEd26Xotr9iFZmDLGoMz");
 }
 
-async function getBalance(connection, publicKey) {
+async function getBalance(pubkey) {
   try {
-    const balance = await connection.getBalance(publicKey);
-    return balance / web3.LAMPORTS_PER_SOL;
+    const connection = new web3.Connection('http://localhost:8899', 'confirmed');
+    const balance = await connection.getBalance(pubkey.publicKey);
+    return (balance / web3.LAMPORTS_PER_SOL);
   } catch (error) {
     console.error(error);
     return 0;
   }
 }
 
-async function addTodoItem(connection, payerKeypair, programId, todoItem) {
+async function addTodoItem(payerKeypair, programId, todoItem) {
+  const connection = new web3.Connection('http://localhost:8899', 'confirmed');
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -78,7 +69,8 @@ async function addTodoItem(connection, payerKeypair, programId, todoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function markCompleted(connection, payerKeypair, programId, todoItem) {
+async function markCompleted(payerKeypair, programId, todoItem) {
+  const connection = new web3.Connection('http://localhost:8899', 'confirmed');
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -123,7 +115,8 @@ async function markCompleted(connection, payerKeypair, programId, todoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function deleteTodoItem(connection, payerKeypair, programId, todoItem) {
+async function deleteTodoItem(payerKeypair, programId, todoItem) {
+  const connection = new web3.Connection('http://localhost:8899', 'confirmed');
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -168,7 +161,8 @@ async function deleteTodoItem(connection, payerKeypair, programId, todoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function updateTodoItem(connection, payerKeypair, programId, todoItem) {
+async function updateTodoItem(payerKeypair, programId, todoItem) {
+  const connection = new web3.Connection('http://localhost:8899', 'confirmed');
   const transaction = new web3.Transaction();
 
   // Pack the instruction data
@@ -213,8 +207,9 @@ async function updateTodoItem(connection, payerKeypair, programId, todoItem) {
   await web3.sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
 }
 
-async function getTodoItems(connection, programId) {
+async function getTodoItems(programId) {
   try {
+    const connection = new web3.Connection('http://localhost:8899', 'confirmed');
     const accounts = await connection.getProgramAccounts(programId);
     const todos = accounts.map(({ account }) => {
       return borsh.deserialize(TodoItemSchema, TodoItem, account.data);
@@ -227,7 +222,6 @@ async function getTodoItems(connection, programId) {
 }
 
 module.exports = {
-  connectToSolanaCluster,
   readKeypair,
   getProgramId,
   getBalance,

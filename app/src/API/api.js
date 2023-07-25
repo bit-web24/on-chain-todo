@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = 'http://localhost:3000';
+const baseURL = 'http://localhost:4000';
 
 // Function to check connection with the backend server
 export const checkConnection = async () => {

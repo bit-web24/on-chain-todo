@@ -1,22 +1,25 @@
 const rpc = require('../../bloc/index');
 const { TodoItem } = require('../../bloc/models/todo_item');
-const { connectToSolanaCluster, readKeypair, getProgramId } = require('../../bloc/index');
+const {readKeypair, getProgramId } = require('../../bloc/index');
 
-const connection = connectToSolanaCluster('http://localhost:8899');
+const keypairFilePath = "/home/bittu/.config/solana/id.json";
+let payerKeypair = readKeypair(keypairFilePath);
 
-let payerKeypair;
 const programId = getProgramId();
 
 let id = 1;
 
 const checkConnection = async (req, res) => {
   try {
-    const keypairFilePath = "/home/bittu/.config/solana/id.json";
-    payerKeypair = await readKeypair(keypairFilePath);
+    let isConnected = false;
+    let walletAddr = '';
 
-    const isConnected = true;
+    if (payerKeypair) {
+      isConnected = true;
+      walletAddr = payerKeypair.publicKey.toBase58();
+    }
 
-    res.json({ isConnected, walletAddr: payerKeypair.publicKey.toBase58() });
+    res.json({ isConnected, walletAddr });
   } catch (error) {
     console.error('Error checking server connection:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -25,10 +28,14 @@ const checkConnection = async (req, res) => {
 
 const getBalance = async (req, res) => {
   try {
-    const balance = await rpc.getBalance(connection, payerKeypair);
+    if (!payerKeypair) {
+      throw new Error('Payer keypair is not initialized.');
+    }
+
+    const balance = await rpc.getBalance(payerKeypair);
     res.json({ balance });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching balance:', error);
     res.status(500).send('Error occurred while fetching balance');
   }
 };
@@ -42,7 +49,7 @@ const createTodo = async (req, res) => {
       completed: false,
     });
 
-    await rpc.addTodoItem(connection, payerKeypair, programId, todo);
+    await rpc.addTodoItem(payerKeypair, programId, todo);
     id++;
     res.status(201).send('Todo created successfully');
   } catch (error) {
@@ -60,7 +67,7 @@ const completeTodo = async (req, res) => {
       completed: false,
     });
 
-    await rpc.markCompleted(connection, payerKeypair, programId, todo);
+    await rpc.markCompleted(payerKeypair, programId, todo);
     res.status(200).send('Todo marked as completed');
   } catch (error) {
     console.error(error);
@@ -77,7 +84,7 @@ const updateTodo = async (req, res) => {
       completed: false,
     });
 
-    await rpc.updateTodoItem(connection, payerKeypair, programId, todo);
+    await rpc.updateTodoItem(payerKeypair, programId, todo);
     res.status(200).send('Todo updated successfully');
   } catch (error) {
     console.error(error);
@@ -93,7 +100,7 @@ const deleteTodo = async (req, res) => {
       description: req.body.todo.description,
       completed: false,
     });
-    await rpc.deleteTodoItem(connection, payerKeypair, programId, todo);
+    await rpc.deleteTodoItem(payerKeypair, programId, todo);
     res.status(200).send('Todo deleted successfully');
   } catch (error) {
     console.error(error);
