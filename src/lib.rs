@@ -26,18 +26,40 @@ fn process_instruction(
     let instruction = Instruction::unpack(instruction_data)?;
 
     match instruction {
-        Instruction::AddTodo { todo_item } => {
+        Instruction::AddTodo {
+            id,
+            title,
+            description,
+            completed,
+        } => {
+            let todo_item: TodoItem = TodoItem {
+                id,
+                title,
+                description,
+                completed,
+            };
             add_todo_item(program_id, accounts, todo_item)?;
         }
-        Instruction::MarkCompleted { todo_item } => {
-            mark_todo_item_completed(program_id, accounts, todo_item)?;
+        Instruction::MarkCompleted { id } => {
+            mark_todo_item_completed(program_id, accounts, id)?;
         }
         // add a update todo item instruction
-        Instruction::UpdateTodo { todo_item } => {
+        Instruction::UpdateTodo {
+            id,
+            title,
+            description,
+            completed,
+        } => {
+            let todo_item: TodoItem = TodoItem {
+                id,
+                title,
+                description,
+                completed,
+            };
             update_todo_item(program_id, accounts, todo_item)?;
         }
-        Instruction::DeleteTodo { todo_item } => {
-            delete_todo_item(program_id, accounts, todo_item)?;
+        Instruction::DeleteTodo { id } => {
+            delete_todo_item(program_id, accounts, id)?;
         }
     }
 
@@ -72,7 +94,7 @@ fn add_todo_item(
     }
 
     let pda_account = next_account_info(account_info_iter)?;
-    
+
     if !pda_account.data_is_empty() {
         msg!("Account is already initialized");
         return Err(ProgramError::AccountAlreadyInitialized);
@@ -87,7 +109,7 @@ fn add_todo_item(
     let (pda, bump_seed) = Pubkey::find_program_address(
         &[
             initializer.key.as_ref(),
-            todo_item.id.to_string().as_bytes().as_ref(),
+            &[todo_item.id],
         ],
         program_id,
     );
@@ -143,7 +165,7 @@ fn add_todo_item(
 fn mark_todo_item_completed(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    todo_item: TodoItem,
+    id: u8,
 ) -> ProgramResult {
     // Ensure that the accounts slice has the required accounts in the expected order
     if accounts.len() < 1 {
@@ -177,7 +199,7 @@ fn mark_todo_item_completed(
     let (pda, _bump_seed) = Pubkey::find_program_address(
         &[
             initializer.key.as_ref(),
-            todo_item.id.to_string().as_bytes().as_ref(),
+            &[id],
         ],
         program_id,
     );
@@ -189,9 +211,7 @@ fn mark_todo_item_completed(
 
     let mut account_data =
         try_from_slice_unchecked::<TodoItem>(&pda_account.data.borrow()).unwrap();
-
-    account_data.title = todo_item.title;
-    account_data.description = todo_item.description;
+    
     account_data.completed = true;
 
     account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
@@ -202,7 +222,7 @@ fn mark_todo_item_completed(
 fn delete_todo_item(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    todo_item: TodoItem,
+    id: u8,
 ) -> ProgramResult {
     // Ensure that the accounts slice has the required accounts in the expected order
     if accounts.len() < 1 {
@@ -236,7 +256,7 @@ fn delete_todo_item(
     let (pda, _bump_seed) = Pubkey::find_program_address(
         &[
             initializer.key.as_ref(),
-            todo_item.id.to_string().as_bytes().as_ref(),
+            &[id],
         ],
         program_id,
     );
@@ -298,7 +318,7 @@ fn update_todo_item(
     let (pda, _bump_seed) = Pubkey::find_program_address(
         &[
             initializer.key.as_ref(),
-            todo_item.id.to_string().as_bytes().as_ref(),
+            &[todo_item.id],
         ],
         program_id,
     );

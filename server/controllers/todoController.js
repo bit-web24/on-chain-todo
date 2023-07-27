@@ -1,11 +1,9 @@
-const rpc = require('../../bloc/index');
-const { TodoItem } = require('../../bloc/models/todo_item');
-const {readKeypair, getProgramId } = require('../../bloc/index');
+const rpc = require('../../dist/index');
 
 const keypairFilePath = "/home/bittu/.config/solana/id.json";
-let payerKeypair = readKeypair(keypairFilePath);
+let payerKeypair = rpc.readKeypair(keypairFilePath);
 
-const programId = getProgramId();
+const programId = rpc.getProgramId();
 
 let id = 1;
 
@@ -16,7 +14,7 @@ const checkConnection = async (req, res) => {
 
     if (payerKeypair) {
       isConnected = true;
-      walletAddr = payerKeypair.publicKey.toBase58();
+      walletAddr = payerKeypair.publicKey.toString();
     }
 
     res.json({ isConnected, walletAddr });
@@ -42,12 +40,12 @@ const getBalance = async (req, res) => {
 
 const createTodo = async (req, res) => {
   try {
-    let todo = new TodoItem({
+    let todo = {
       id: id,
       title: req.body.todo.title,
       description: req.body.todo.description,
       completed: false,
-    });
+    };
 
     await rpc.addTodoItem(payerKeypair, programId, todo);
     id++;
@@ -60,14 +58,7 @@ const createTodo = async (req, res) => {
 
 const completeTodo = async (req, res) => {
   try {
-    let todo = new TodoItem({
-      id: req.body.todo.id,
-      title: req.body.todo.title,
-      description: req.body.todo.description,
-      completed: false,
-    });
-
-    await rpc.markCompleted(payerKeypair, programId, todo);
+    await rpc.markCompleted(payerKeypair, programId, req.body.todo.id);
     res.status(200).send('Todo marked as completed');
   } catch (error) {
     console.error(error);
@@ -77,12 +68,12 @@ const completeTodo = async (req, res) => {
 
 const updateTodo = async (req, res) => {
   try {
-    let todo = new TodoItem({
+    let todo = {
       id: req.params.id,
       title: req.body.todo.title,
       description: req.body.todo.description,
-      completed: false,
-    });
+      completed: req.body.todo.completed,
+    };
 
     await rpc.updateTodoItem(payerKeypair, programId, todo);
     res.status(200).send('Todo updated successfully');
@@ -94,13 +85,7 @@ const updateTodo = async (req, res) => {
 
 const deleteTodo = async (req, res) => {
   try {
-    let todo = new TodoItem({
-      id: req.body.todo.id,
-      title: req.body.todo.title,
-      description: req.body.todo.description,
-      completed: false,
-    });
-    await rpc.deleteTodoItem(payerKeypair, programId, todo);
+    await rpc.deleteTodoItem(payerKeypair, programId, req.body.todo.id);
     res.status(200).send('Todo deleted successfully');
   } catch (error) {
     console.error(error);
