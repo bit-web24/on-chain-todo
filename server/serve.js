@@ -8,7 +8,7 @@ require('dotenv').config();
 app.use(bodyParser.json());
 app.use('/', router);
 
-port = process.env.PORT;
+const port = process.env.PORT | 4000;
 const server = app.listen(port, (req, res) => {
     console.log(`Server running on port: ${port}`);
 });
